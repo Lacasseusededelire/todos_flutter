@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">TeamTasks</string>
+    <string name="widget_title">Mes Tâches</string>
+    <string name="empty_tasks">Aucune tâche</string>
+</resources>
