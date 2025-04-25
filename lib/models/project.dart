@@ -1,9 +1,9 @@
 class Project {
-  final int? id;
+  final int id;
   final String name;
   final String? description;
 
-  Project({this.id, required this.name, this.description});
+  Project({required this.id, required this.name, this.description});
 
   Map<String, dynamic> toMap() {
     return {
@@ -15,7 +15,7 @@ class Project {
 
   static Project fromMap(Map<String, dynamic> map) {
     return Project(
-      id: map['id'],
+      id: map['id'] as int,
       name: map['name'],
       description: map['description'],
     );

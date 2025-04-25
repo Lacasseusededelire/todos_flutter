@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 import '../services/database_service.dart';
 import '../models/project.dart';
 import 'project_form_screen.dart';
@@ -16,6 +15,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _projectSearchController = TextEditingController();
   String? _filterStatus;
   String? _filterCategory;
   Project? _selectedProject;
@@ -27,12 +27,44 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _searchController.addListener(_refresh);
+    _projectSearchController.addListener(_refresh);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _projectSearchController.dispose();
     super.dispose();
+  }
+
+  void _deleteProject(int id, BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmer la suppression'),
+        content: const Text('Voulez-vous vraiment supprimer ce projet ? Toutes les tâches associées seront également supprimées.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await _dbService.deleteProject(id);
+      if (_selectedProject?.id == id) {
+        setState(() {
+          _selectedProject = null;
+        });
+      } else {
+        setState(() {});
+      }
+    }
   }
 
   @override
@@ -59,6 +91,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: TextField(
+                controller: _projectSearchController,
+                decoration: InputDecoration(
+                  labelText: 'Rechercher un projet',
+                  prefixIcon: const Icon(Icons.search),
+                  border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                  filled: true,
+                  fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+                ),
+              ),
+            ),
             ListTile(
               title: const Text('Toutes les tâches'),
               selected: _selectedProject == null,
@@ -71,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             Expanded(
               child: FutureBuilder<List<Project>>(
-                future: _dbService.getProjects(),
+                future: _dbService.getProjects(searchQuery: _projectSearchController.text),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -96,6 +141,26 @@ class _HomeScreenState extends State<HomeScreen> {
                           });
                           Navigator.pop(context);
                         },
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, size: 20),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProjectFormScreen(project: project),
+                                  ),
+                                ).then((_) => setState(() {}));
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, size: 20),
+                              onPressed: () => _deleteProject(project.id, context),
+                            ),
+                          ],
+                        ),
                       );
                     },
                   );
@@ -127,9 +192,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: InputDecoration(
                       labelText: 'Rechercher une tâche',
                       prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                       filled: true,
-                      fillColor: Colors.grey[100],
+                      fillColor: Theme.of(context).inputDecorationTheme.fillColor,
                     ),
                   ),
                 ),
@@ -143,9 +208,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           value: _filterStatus,
                           isExpanded: true,
                           decoration: InputDecoration(
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                             filled: true,
-                            fillColor: Colors.grey[100],
+                            fillColor: Theme.of(context).inputDecorationTheme.fillColor,
                           ),
                           items: ['toDo', 'inProgress', 'done'].map((status) {
                             return DropdownMenuItem(value: status, child: Text(status));
@@ -160,9 +225,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           value: _filterCategory,
                           isExpanded: true,
                           decoration: InputDecoration(
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                             filled: true,
-                            fillColor: Colors.grey[100],
+                            fillColor: Theme.of(context).inputDecorationTheme.fillColor,
                           ),
                           items: ['Urgent', 'Normal', 'Low'].map((category) {
                             return DropdownMenuItem(value: category, child: Text(category));
@@ -184,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : ProjectDetailScreen(project: _selectedProject!),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
+        onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(

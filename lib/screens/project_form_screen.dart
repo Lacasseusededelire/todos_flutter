@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../services/database_service.dart';
+import '../models/project.dart';
 
 class ProjectFormScreen extends StatefulWidget {
-  const ProjectFormScreen({super.key});
+  final Project? project;
+
+  const ProjectFormScreen({super.key, this.project});
 
   @override
   _ProjectFormScreenState createState() => _ProjectFormScreenState();
@@ -15,6 +18,15 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
   final _dbService = DatabaseService();
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.project != null) {
+      _nameController.text = widget.project!.name;
+      _descriptionController.text = widget.project!.description ?? '';
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
@@ -23,10 +35,18 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
-      await _dbService.createProject(
-        name: _nameController.text,
-        description: _descriptionController.text,
-      );
+      if (widget.project == null) {
+        await _dbService.createProject(
+          name: _nameController.text,
+          description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+        );
+      } else {
+        await _dbService.updateProject(
+          widget.project!.id,
+          name: _nameController.text,
+          description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+        );
+      }
       Navigator.pop(context);
     }
   }
@@ -34,7 +54,7 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Nouveau projet')),
+      appBar: AppBar(title: Text(widget.project == null ? 'Nouveau projet' : 'Modifier le projet')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -60,7 +80,7 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _submit,
-                child: const Text('Ajouter'),
+                child: Text(widget.project == null ? 'Ajouter' : 'Modifier'),
               ),
             ],
           ),

@@ -20,7 +20,7 @@ class DatabaseService {
     String path = join(await getDatabasesPath(), 'tasks.db');
     return await openDatabase(
       path,
-      version: 2, // Incrémenté pour gérer la migration
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE projects (
@@ -38,7 +38,7 @@ class DatabaseService {
             category TEXT NOT NULL,
             deadline TEXT NOT NULL,
             project_id INTEGER,
-            FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
+            FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
           )
         ''');
       },
@@ -54,7 +54,7 @@ class DatabaseService {
               category TEXT NOT NULL,
               deadline TEXT NOT NULL,
               project_id INTEGER,
-              FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
+              FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
             )
           ''');
           await db.execute('''
@@ -76,7 +76,7 @@ class DatabaseService {
     required TaskStatus status,
     required String category,
     required DateTime deadline,
-    int? projectId, // Peut être null
+    int? projectId,
   }) async {
     final db = await database;
     await db.insert('tasks', {
@@ -168,14 +168,29 @@ class DatabaseService {
     });
   }
 
-  Future<List<Project>> getProjects() async {
+  Future<List<Project>> getProjects({String? searchQuery}) async {
     final db = await database;
-    final maps = await db.query('projects');
+    final maps = await db.query(
+      'projects',
+      where: searchQuery != null && searchQuery.isNotEmpty ? 'name LIKE ?' : null,
+      whereArgs: searchQuery != null && searchQuery.isNotEmpty ? ['%$searchQuery%'] : null,
+    );
     return maps.map(Project.fromMap).toList();
+  }
+
+  Future<void> updateProject(int id, {required String name, String? description}) async {
+    final db = await database;
+    await db.update(
+      'projects',
+      {'name': name, 'description': description},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
   Future<void> deleteProject(int id) async {
     final db = await database;
+    await db.delete('tasks', where: 'project_id = ?', whereArgs: [id]);
     await db.delete('projects', where: 'id = ?', whereArgs: [id]);
   }
 }
