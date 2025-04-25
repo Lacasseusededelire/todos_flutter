@@ -28,15 +28,18 @@ class TaskApp extends StatelessWidget {
       title: 'TeamTasks',
       theme: ThemeData(
         useMaterial3: true,
-        primaryColor: Colors.blue[700],
+        primaryColor: const Color(0xFF1565C0),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue[700]!,
-          secondary: Colors.orange[600],
-          surface: Colors.grey[100],
+          seedColor: const Color(0xFF1565C0),
+          primary: const Color(0xFF1565C0),
+          primaryContainer: const Color(0xFF0D47A1),
+          secondary: const Color(0xFF0D47A1),
+          surface: const Color(0xFFFAFAFA),
+          background: const Color(0xFFFAFAFA),
         ),
-        scaffoldBackgroundColor: Colors.grey[50],
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.blue[700],
+        scaffoldBackgroundColor: const Color(0xFFFAFAFA),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1565C0),
           foregroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
@@ -49,16 +52,16 @@ class TaskApp extends StatelessWidget {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             foregroundColor: Colors.white,
-            backgroundColor: Colors.blue[700],
+            backgroundColor: const Color(0xFF1565C0),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
-        inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        inputDecorationTheme: const InputDecorationTheme(
+          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
           filled: true,
-          fillColor: Colors.grey[100],
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          fillColor: Color(0xFFF5F5F5),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         textTheme: const TextTheme(
           bodyMedium: TextStyle(color: Colors.black87),
